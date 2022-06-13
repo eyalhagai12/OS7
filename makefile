@@ -1,4 +1,5 @@
 all: main
+	touch disk
 
 main: main.o myfs.o
 	gcc -o $@ $^
@@ -7,4 +8,4 @@ main: main.o myfs.o
 	gcc -c -g $<
 
 clean:
-	rm -rf *.o main new_disk
+	rm -rf *.o main disk
