@@ -5,12 +5,16 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#define ROOT_DIR "root"
+
 #pragma once
 
 #define MAXOPENFILES 10000
-#define MAXNAMESIZE 256
+#define MAXNAMESIZE 1024
 #define NUM_INODES 1000
 #define INODE_INIT_SIZE 1024 // bytes
+
+int fd; // global file descriptor
 
 // --------------------------------------------------------------------
 // enums
@@ -19,6 +23,7 @@ enum INodeType
 {
 	_FILE,
 	_DIRECTORY,
+	_FILE_SYSTEM,
 	_UNKNOWN
 };
 
@@ -35,6 +40,7 @@ typedef struct inode_t
 {
 	int id;
 	char name[MAXNAMESIZE];
+	const char real_path[MAXNAMESIZE];
 	size_t data_start;
 	size_t size;
 	int next_id;
@@ -51,10 +57,12 @@ typedef struct mydir_t
 } myDIR;
 
 // --------------------------------------------------------------------
-// functions
+// inode functions
 // --------------------------------------------------------------------
 int mymount(const char *source, const char *target,
 			const char *filesystemtype, unsigned long mountflags, const void *data);
+
+int mymount_root(const char *source, const char *target, const char *filesystemtype, unsigned long mountflags, const void *data);
 
 INode *read_inode(int fd, off_t id);
 
@@ -69,3 +77,8 @@ void next_id(int fd, off_t id, int new_id);
 void change_type(int fd, off_t id, enum INodeType new_type);
 
 void change_status(int fd, off_t id, enum STATUS new_status);
+
+// --------------------------------------------------------------------
+// directory functions
+// --------------------------------------------------------------------
+myDIR *read_directory(int fd, int inode_id);
