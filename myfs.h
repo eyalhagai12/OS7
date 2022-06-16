@@ -12,7 +12,7 @@
 #define MAXOPENFILES 10000
 #define MAXNAMESIZE 1024
 #define NUM_INODES 1000
-#define INODE_INIT_SIZE 1024 // bytes
+#define INODE_INIT_SIZE 1024 
 
 int fd; // global file descriptor
 
@@ -40,7 +40,7 @@ typedef struct inode_t
 {
 	int id;
 	char name[MAXNAMESIZE];
-	const char real_path[MAXNAMESIZE];
+	char real_path[MAXNAMESIZE];
 	size_t data_start;
 	size_t size;
 	int next_id;

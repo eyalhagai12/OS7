@@ -10,6 +10,7 @@ int main(int argc, char const *argv[])
 	{
 		mymount_root("", ROOT_DIR, NULL, 0, NULL);
 	}
+	read_inode(fd,5);
 
 	// fd = mymount("", "disk", "", 0, NULL);
 	// fd = open("disk", O_RDWR);

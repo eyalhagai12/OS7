@@ -1,6 +1,0 @@
-{
-    "files.associations": {
-        "myfs.h": "c",
-        "unistd.h": "c"
-    }
-}

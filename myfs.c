@@ -79,7 +79,7 @@ void change_status(int fd, off_t id, enum STATUS new_status)
 	write(fd, inode, sizeof(INode));
 }
 
-void change_path(int fd, off_t id, const char *new_path)
+void change_path(int fd, off_t id,const char *new_path)
 {
 	INode *inode = read_inode(fd, id);
 	strcpy(inode->real_path, new_path);
@@ -143,7 +143,26 @@ int mkfs(const char *name)
 
 	return -1;
 }
-
+INode create_Inode(int id,char *path, char *real_path,size_t data_start,size_t size, int next_id
+, enum INodeType type,enum STATUS status){	
+	INode root_inode;
+	root_inode.id = id;
+	strcpy(root_inode.name,path);
+	strcpy(root_inode.real_path,real_path);
+	root_inode.data_start = data_start;
+	root_inode.size = size;
+	root_inode.next_id = next_id;
+	root_inode.type = type;
+	root_inode.status = status;
+	return root_inode;
+}
+myDIR create_dir(int id ,const char *dir_name, size_t num_inodes){
+	myDIR dir;
+	dir.id = id;
+	strcpy(dir.name,dir_name);
+	dir.num_inodes = num_inodes;
+	return dir;
+}
 int mymount(const char *source, const char *target, const char *filesystemtype, unsigned long mountflags, const void *data)
 {
 	char path[1024] = {0};
@@ -165,16 +184,17 @@ int mymount(const char *source, const char *target, const char *filesystemtype, 
 	}
 
 	int new_fd = open(fs_inode->real_path, O_RDWR);
+	INode root_inode = create_Inode(0,path,path,sizeof(INode) * NUM_INODES,INODE_INIT_SIZE,-1,_DIRECTORY,_USED);
 
-	INode root_inode = {0, path[0], path[0], sizeof(INode) * NUM_INODES, INODE_INIT_SIZE, -1, _DIRECTORY, _USED};
+	
 	add_inode(new_fd, &root_inode);
 	for (size_t i = 1; i < NUM_INODES; i++)
 	{
-		INode inode = {i, "test", "", sizeof(INode) * NUM_INODES + (INODE_INIT_SIZE * i), INODE_INIT_SIZE, -1, _UNKNOWN, _UNUSED};
+		INode inode = create_Inode(i, "test", "", sizeof(INode) * NUM_INODES + (INODE_INIT_SIZE * i), INODE_INIT_SIZE, -1, _UNKNOWN, _UNUSED);
 		add_inode(new_fd, &inode);
 	}
 
-	myDIR root_dir = {0, {0}, target, 0};
+	myDIR root_dir = create_dir(0,  target, 0);
 	lseek(new_fd, root_inode.data_start, SEEK_SET);
 	write(new_fd, &root_dir, sizeof(myDIR));
 	close(new_fd);
@@ -188,11 +208,11 @@ int mymount_root(const char *source, const char *target, const char *filesystemt
 	strcat(path, target);
 	printf("Path: %s\n", path);
 
-	INode root_inode = {0, path, "./root", sizeof(INode) * NUM_INODES, INODE_INIT_SIZE, -1, _DIRECTORY, _USED};
+	INode root_inode = create_Inode(0, path, "./root", sizeof(INode) * NUM_INODES, INODE_INIT_SIZE, -1, _DIRECTORY, _USED);
 	add_inode(fd, &root_inode);
 	for (size_t i = 1; i < NUM_INODES; i++)
 	{
-		INode inode = {i, "test", "", sizeof(INode) * NUM_INODES + (INODE_INIT_SIZE * i), INODE_INIT_SIZE, -1, _UNKNOWN, _UNUSED};
+		INode inode = create_Inode(i, "test", "", sizeof(INode) * NUM_INODES + (INODE_INIT_SIZE * i), INODE_INIT_SIZE, -1, _UNKNOWN, _UNUSED);
 		add_inode(fd, &inode);
 	}
 
