@@ -1,21 +1,74 @@
 #include "myfs.h"
+#include "mylibc.h"
 
 #include <string.h>
+#include <dirent.h>
+
+void __attribute__((constructor)) calledFirst();
+void __attribute__((destructor)) calledLast();
+
+void calledFirst()
+{
+	global_id = -1;
+	global_idx = -1;
+	for (size_t i = 0; i < MAXOPENFILES; i++)
+	{
+		openfiles[i] = -1;
+		openfiles_pos[i] = 0;
+	}
+
+	char buff[5];
+
+	fd = open(ROOT_DIR, O_RDWR, 0777);
+	if (fd == -1)
+	{
+		perror("fd open");
+		exit(1);
+	}
+
+	read(fd, &super, sizeof(superblock));
+	superblock s = super;
+	if (read(fd, buff, 5) == 0)
+	{
+		mymount("", ROOT_DIR, NULL, 0, NULL);
+	}
+}
+
+void calledLast()
+{
+	close(fd);
+}
 
 int main(int argc, char const *argv[])
 {
-	char buff[5];
-	fd = open(ROOT_DIR, O_RDWR | O_CREAT);
-	if (read(fd, buff, 4) == 0)
+	myDIR *dir1 = myopendir("root/eyal/yanir");
+	myDIR *dir2 = myopendir("root/eyal/mor");
+	myDIR *dir3 = myopendir("root/eyal/test");
+	myDIR *dir4 = myopendir("root/eyal/charlie");
+	myDIR *eyal = myopendir("root/eyal");
+	myDIR *root = myopendir("root");
+	mydirent *dir;
+	while ((dir = myreaddir(eyal)) != NULL)
 	{
-		mymount_root("", ROOT_DIR, NULL, 0, NULL);
+		printf("%s\n", dir->d_name);
+		free(dir);
 	}
-	read_inode(fd,5);
 
-	// fd = mymount("", "disk", "", 0, NULL);
-	// fd = open("disk", O_RDWR);
-	// INode *root = read_inode(fd, 0);
-	// myDIR *root_dir = read_directory(fd, 0);
-	// printf("Hello world!\n");
+	myFILE *myfd = myfopen("root/eyal/blabla.txt", "r+");
+
+	myfprintf(myfd, "%d %c %f", 55555555, 's', 7.98765);
+	int n;
+	char c;
+	float fl;
+	myfseek(myfd, 0, SEEK_SET);
+	myfscanf(myfd, "%d %c %f", &n, &c, &fl);
+	printf("%d %c %f\n", n, c, fl);
+	myclosedir(dir1);
+	myclosedir(dir2);
+	myclosedir(dir3);
+	myclosedir(dir4);
+	myclosedir(eyal);
+	myclosedir(root);
+	myfclose(myfd);
 	return 0;
 }
